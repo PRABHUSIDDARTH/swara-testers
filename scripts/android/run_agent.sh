@@ -24,6 +24,13 @@ PKG=$([ -n "$AAPT2" ] && "$AAPT2" dump packagename app.apk 2>/dev/null | tr -d '
 if [ -n "$PKG" ] && [ "$PKG" != "$APP_ID" ]; then echo "Package read from the APK (differs from app_id)"; APP_ID=$PKG; fi
 export APP_ID
 adb install -r -g app.apk || adb install -r app.apk
+# 3b. Swara: a small generated music library (media/*.mp3, fictional artists), indexed by MediaStore
+if [ -d media ]; then
+  adb shell mkdir -p /sdcard/Music/SwaraTest
+  adb push media/. /sdcard/Music/SwaraTest/ >/dev/null 2>&1 || true
+  adb shell content call --uri content://media/external/file --method scan_volume --arg external_primary >/dev/null 2>&1 || true
+  sleep 8
+fi
 adb shell settings put system font_scale "${FONT_SCALE:-1.0}"
 [ "${THEME:-light}" = dark ] && adb shell cmd uimode night yes
 # High contrast text. Animations are already off on every emulator (disable-animations in the workflow)
